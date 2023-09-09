@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart';
 
+// ignore: must_be_immutable
 class LoadingPage extends StatefulWidget {
-  const LoadingPage({super.key});
-
+  LoadingPage({super.key, this.nextPage});
+  Widget? nextPage;
   @override
   State<LoadingPage> createState() => _LoadingPageState();
 }
@@ -14,10 +15,14 @@ class LoadingPage extends StatefulWidget {
 Response? response;
 
 class _LoadingPageState extends State<LoadingPage> {
+  Widget? nextPage;
   @override
   void initState() {
     super.initState();
-    getData('https://mtasa.com/api/', context);
+    widget.nextPage == null
+        ? nextPage = HomePage()
+        : nextPage = widget.nextPage;
+    getData('https://mtasa.com/api/', context, nextPage: nextPage);
   }
 
   @override
@@ -35,8 +40,17 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 }
 
-void getData(String url, BuildContext context) async {
-  Uri uri = Uri.parse(url);
-  response = await get(uri);
-  changePage(HomePage(), context);
+void getData(String url, BuildContext context,
+    {Widget? nextPage, bool? doChangePage}) async {
+  try {
+    Uri uri = Uri.parse(url);
+    response = await get(uri);
+    nextPage == null ? nextPage = HomePage() : nextPage = nextPage;
+    doChangePage == null ? doChangePage = true : doChangePage = doChangePage;
+    if (doChangePage) {
+      changePage(nextPage, context);
+    }
+  } catch (e) {
+    print("Error. ${e}");
+  }
 }
